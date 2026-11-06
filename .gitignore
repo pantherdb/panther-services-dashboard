@@ -1,0 +1,33 @@
+node_modules
+dist
+*.log
+
+# Local settings and secrets. Commit .env.example only.
+.env
+.env.*
+!.env.example
+*.local
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# Claude Code
+.claude/settings.local.json
+
+# Playwright
+playwright-report/
+test-results/
+playwright/.cache/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Exported logs: they hold client addresses. compose.yaml reads ./exports by default.
+exports/
