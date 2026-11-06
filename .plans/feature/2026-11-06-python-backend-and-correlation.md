@@ -19,8 +19,8 @@ likes it, the same backend later runs on the server and collects live.
   ELK: they store and chart lines, but don't join a 502 to a crash to a container restart.
 - **Python does the work, React displays.** The cross-source logic is written once, in Python, and
   moves to the server unchanged. A backend can also read a folder the user points it at.
-- **Proof of concept first, independent.** Runs locally on exported files. No server, no backend
-  on the team server, and nothing asked of Dustin until the team has seen it and wants it.
+- **Proof of concept first.** Runs locally on exported files, with no server. Revised later the
+  same day: the team tries it now, with Docker on their own machines; a server only if they want it.
 - **Same pattern as panther-scoring-services:** FastAPI, OpenAPI as the contract, TypeScript types
   generated from it (`openapi-typescript`), RTK Query in the frontend. Same pins for FastAPI,
   ruff, basedpyright, pytest (`../panther-scoring-services/api/pyproject.toml`).
@@ -153,9 +153,11 @@ only recent events in memory: export soon after an incident.
   Resources page, structured incidents, the latency heatmap. Backend: ruff, basedpyright (standard),
   60 pytest. Frontend: api:types:check, type-check, lint, format, 26 vitest, build, 5 e2e against the
   real backend. Screenshots of every page reviewed in both schemes and at phone width.
-- **Next immediate action:** owner reviews, makes the first commit, then tries real exports from
-  a local `docker compose up` of panther-scoring-services. Planning moves to OpenSpec.
-- **Uncommitted changes:** everything; the repo has no commits and no remote
+- **Next immediate action:** the team tries it (README, "Try It" and "When Testing") and sends
+  back lines not understood and wrong stories. Still untested on real logs: nginx's (no web
+  container to export from yet) and the API's current job lines (the container on hand predates
+  them); a real API container's start-up log is read in full. Planning moves to OpenSpec.
+- **Uncommitted changes:** none; committed on main, pushed to pantherdb/panther-services-dashboard
 - **Environment state:** `backend/.venv` (uv) and `frontend/node_modules` installed; the compose
   stack (project `panther-services-dashboard`) may be running on 127.0.0.1:4340 with the sample
 

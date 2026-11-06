@@ -8,8 +8,8 @@ request failed, what an incident was made of, what happened to one job. For debu
 profiling. Not a generic log viewer: the joining-up is the point, which is why Grafana, Loki and
 ELK were set aside (they store and chart lines, but don't connect a 502 to a crash to a restart).
 
-**Status: a proof of concept, local only.** It reads exported files. No server, nothing deployed,
-nothing asked of the team's server admin until the team has seen it and wants it. Then the same
+**Status: a proof of concept, being tried by the team.** It runs on a tester's own machine, in
+Docker or natively, and reads exported files. Nothing is deployed; if the team wants it, the same
 backend can run on the server and collect live. The plan, with a recovery checkpoint, is
 `.plans/feature/2026-11-06-python-backend-and-correlation.md`; planning moves to OpenSpec later.
 
