@@ -49,8 +49,11 @@ describe('the overview', () => {
     const { user } = renderRoute('/')
     const links = await screen.findAllByRole('link', { name: 'Open in timeline' })
     await user.click(links[0])
-    expect(await screen.findByRole('heading', { name: 'Timeline' })).toBeInTheDocument()
-    const events = screen.getByRole('table', { name: 'Events from all sources, oldest first' })
+    // The loading state has the same heading, so wait for the events themselves.
+    const events = await screen.findByRole('table', {
+      name: 'Events from all sources, oldest first',
+    })
+    expect(screen.getByRole('heading', { name: 'Timeline' })).toBeInTheDocument()
     expect(within(events).getAllByText('Docker').length).toBeGreaterThan(0)
     expect(within(events).getAllByText('nginx').length).toBeGreaterThan(0)
   })
