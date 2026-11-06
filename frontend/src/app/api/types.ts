@@ -1,0 +1,42 @@
+/**
+ * Short names for the API's shapes. They come from `schema.d.ts`, generated from the backend's
+ * OpenAPI schema (`npm run api:types`): never write one of these by hand.
+ */
+import type { components } from '@/app/api/schema'
+
+type Schemas = components['schemas']
+
+export type Files = Schemas['Files']
+export type LoadedFile = Schemas['LoadedFile']
+export type Overview = Schemas['Overview']
+export type TrafficPoint = Schemas['TrafficPoint']
+export type EndpointRow = Schemas['EndpointRow']
+export type Kpis = Schemas['Kpis']
+export type Marker = Schemas['Marker']
+export type Incident = Schemas['Incident']
+export type IncidentEvent = Schemas['IncidentEvent']
+export type LatencyHeatmap = Schemas['LatencyHeatmap']
+export type OriginRow = Schemas['OriginRow']
+export type Line = Schemas['Line']
+export type Jobs = Schemas['Jobs']
+export type JobOut = Schemas['JobOut']
+export type JobServiceRow = Schemas['JobServiceRow']
+export type JobStory = Schemas['JobStory']
+export type StoryItem = Schemas['StoryItem']
+export type Logs = Schemas['Logs']
+export type Timeline = Schemas['Timeline']
+export type TimelineItem = Schemas['TimelineItem']
+export type Containers = Schemas['Containers']
+export type ContainerOut = Schemas['ContainerOut']
+export type ContainerEvent = Schemas['ContainerEvent']
+export type Span = Schemas['Span']
+export type Resources = Schemas['Resources']
+export type ResourceContainer = Schemas['ResourceContainer']
+export type ResourcePoint = Schemas['ResourcePoint']
+export type ConcurrencyPoint = Schemas['ConcurrencyPoint']
+export type ResourceNote = Schemas['ResourceNote']
+export type Tone = Schemas['Tone']
+export type Level = Schemas['Level']
+export type LogSource = Schemas['LogSource']
+export type Source = Schemas['Source']
+export type WindowKey = Schemas['WindowKey']

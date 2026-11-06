@@ -1,0 +1,9 @@
+dist
+playwright-report
+test-results
+package-lock.json
+# Written by the backend: `uv run services-dashboard fixtures ../frontend/tests/fixtures`
+tests/fixtures
+# Generated: `npm run api:types`
+src/app/api/schema.d.ts
+openapi.json

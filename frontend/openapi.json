@@ -1,0 +1,2557 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PANTHER services dashboard",
+    "summary": "Joins the scoring services' API, nginx and Docker logs, for debugging and profiling.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files": {
+      "get": {
+        "summary": "List Files",
+        "description": "The loaded files and what each turned out to hold.",
+        "operationId": "list_files_api_v1_files_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Files"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Upload Files",
+        "description": "Reads uploaded files. They're parsed and kept in memory; a restart forgets them.",
+        "operationId": "upload_files_api_v1_files_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_files_api_v1_files_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Files"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove All",
+        "operationId": "remove_all_api_v1_files_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Files"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/sample": {
+      "post": {
+        "summary": "Add Sample",
+        "description": "Loads the made-up sample day, replacing it if it's loaded already.",
+        "operationId": "add_sample_api_v1_files_sample_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Files"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/reload": {
+      "post": {
+        "summary": "Reload Folder",
+        "description": "Reads the folder again, for files exported since.",
+        "operationId": "reload_folder_api_v1_files_reload_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Files"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/{file_id}": {
+      "delete": {
+        "summary": "Remove File",
+        "operationId": "remove_file_api_v1_files__file_id__delete",
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "File Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Files"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/span": {
+      "get": {
+        "summary": "Span",
+        "operationId": "span_api_v1_span_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Span"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/overview": {
+      "get": {
+        "summary": "Overview",
+        "description": "Headline numbers, traffic over time, endpoints, error origins, incidents and markers.",
+        "operationId": "overview_api_v1_overview_get",
+        "parameters": [
+          {
+            "name": "window",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "15m",
+                "1h",
+                "6h",
+                "24h",
+                "7d",
+                "all"
+              ],
+              "type": "string",
+              "default": "all",
+              "title": "Window"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/LogSource"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Overview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs": {
+      "get": {
+        "summary": "Jobs",
+        "operationId": "jobs_api_v1_jobs_get",
+        "parameters": [
+          {
+            "name": "window",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "15m",
+                "1h",
+                "6h",
+                "24h",
+                "7d",
+                "all"
+              ],
+              "type": "string",
+              "default": "all",
+              "title": "Window"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Jobs"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{job_id}": {
+      "get": {
+        "summary": "Job Story",
+        "description": "Everything known about one job, from all sources.",
+        "operationId": "job_story_api_v1_jobs__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobStory"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/logs": {
+      "get": {
+        "summary": "Logs",
+        "operationId": "logs_api_v1_logs_get",
+        "parameters": [
+          {
+            "name": "window",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "15m",
+                "1h",
+                "6h",
+                "24h",
+                "7d",
+                "all"
+              ],
+              "type": "string",
+              "default": "all",
+              "title": "Window"
+            }
+          },
+          {
+            "name": "level",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Level"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Level"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/LogSource"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 10,
+              "default": 100,
+              "title": "Pagesize"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Logs"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/timeline": {
+      "get": {
+        "summary": "Timeline",
+        "description": "Every event from all sources between start and end (epoch ms), interleaved.",
+        "operationId": "timeline_api_v1_timeline_get",
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "End"
+            }
+          },
+          {
+            "name": "problemsOnly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Problemsonly"
+            }
+          },
+          {
+            "name": "sources",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Source"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sources"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timeline"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/resources": {
+      "get": {
+        "summary": "Resources",
+        "description": "CPU and memory from `docker stats`, jobs running, and what they say next to the logs.",
+        "operationId": "resources_api_v1_resources_get",
+        "parameters": [
+          {
+            "name": "window",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "15m",
+                "1h",
+                "6h",
+                "24h",
+                "7d",
+                "all"
+              ],
+              "type": "string",
+              "default": "all",
+              "title": "Window"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resources"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/containers": {
+      "get": {
+        "summary": "Containers",
+        "description": "Containers from `docker inspect`, and Docker's events.",
+        "operationId": "containers_api_v1_containers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Containers"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_upload_files_api_v1_files_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "contentMediaType": "application/octet-stream"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_upload_files_api_v1_files_post"
+      },
+      "ConcurrencyPoint": {
+        "properties": {
+          "t": {
+            "type": "integer",
+            "title": "T"
+          },
+          "running": {
+            "type": "number",
+            "title": "Running"
+          },
+          "waiting": {
+            "type": "number",
+            "title": "Waiting"
+          }
+        },
+        "type": "object",
+        "required": [
+          "t",
+          "running",
+          "waiting"
+        ],
+        "title": "ConcurrencyPoint"
+      },
+      "ContainerEvent": {
+        "properties": {
+          "t": {
+            "type": "integer",
+            "title": "T"
+          },
+          "container": {
+            "type": "string",
+            "title": "Container"
+          },
+          "service": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "tone": {
+            "$ref": "#/components/schemas/Tone"
+          },
+          "exitCode": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exitcode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "t",
+          "container",
+          "service",
+          "action",
+          "text",
+          "tone",
+          "exitCode"
+        ],
+        "title": "ContainerEvent"
+      },
+      "ContainerOut": {
+        "properties": {
+          "containerId": {
+            "type": "string",
+            "title": "Containerid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "service": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service"
+          },
+          "image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "oomKilled": {
+            "type": "boolean",
+            "title": "Oomkilled"
+          },
+          "exitCode": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exitcode"
+          },
+          "restartCount": {
+            "type": "integer",
+            "title": "Restartcount"
+          },
+          "created": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created"
+          },
+          "startedAt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Startedat"
+          },
+          "finishedAt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finishedat"
+          },
+          "health": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "containerId",
+          "name",
+          "service",
+          "image",
+          "status",
+          "oomKilled",
+          "exitCode",
+          "restartCount",
+          "created",
+          "startedAt",
+          "finishedAt",
+          "health",
+          "error"
+        ],
+        "title": "ContainerOut"
+      },
+      "Containers": {
+        "properties": {
+          "containers": {
+            "items": {
+              "$ref": "#/components/schemas/ContainerOut"
+            },
+            "type": "array",
+            "title": "Containers"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ContainerEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "containers",
+          "events"
+        ],
+        "title": "Containers"
+      },
+      "Counts": {
+        "properties": {
+          "request": {
+            "type": "integer",
+            "title": "Request"
+          },
+          "job": {
+            "type": "integer",
+            "title": "Job"
+          },
+          "log": {
+            "type": "integer",
+            "title": "Log"
+          },
+          "event": {
+            "type": "integer",
+            "title": "Event"
+          },
+          "container": {
+            "type": "integer",
+            "title": "Container"
+          },
+          "stat": {
+            "type": "integer",
+            "title": "Stat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request",
+          "job",
+          "log",
+          "event",
+          "container",
+          "stat"
+        ],
+        "title": "Counts"
+      },
+      "EndpointRow": {
+        "properties": {
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "route": {
+            "type": "string",
+            "title": "Route"
+          },
+          "requests": {
+            "type": "integer",
+            "title": "Requests"
+          },
+          "clientErrors": {
+            "type": "integer",
+            "title": "Clienterrors"
+          },
+          "serverErrors": {
+            "type": "integer",
+            "title": "Servererrors"
+          },
+          "errorPct": {
+            "type": "number",
+            "title": "Errorpct"
+          },
+          "p50": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P50"
+          },
+          "p95": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95"
+          },
+          "max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max"
+          }
+        },
+        "type": "object",
+        "required": [
+          "method",
+          "route",
+          "requests",
+          "clientErrors",
+          "serverErrors",
+          "errorPct",
+          "p50",
+          "p95",
+          "max"
+        ],
+        "title": "EndpointRow"
+      },
+      "ErrorOrigin": {
+        "type": "string",
+        "enum": [
+          "api_unreachable",
+          "api_error",
+          "api_refused",
+          "api_slow",
+          "client_gave_up",
+          "site_error",
+          "unknown"
+        ]
+      },
+      "FileFormat": {
+        "type": "string",
+        "enum": [
+          "api",
+          "nginx",
+          "docker",
+          "stats",
+          "mixed",
+          "unknown"
+        ]
+      },
+      "FileOrigin": {
+        "type": "string",
+        "enum": [
+          "folder",
+          "upload",
+          "sample"
+        ]
+      },
+      "FileSummary": {
+        "properties": {
+          "format": {
+            "$ref": "#/components/schemas/FileFormat"
+          },
+          "lines": {
+            "type": "integer",
+            "title": "Lines"
+          },
+          "parsed": {
+            "type": "integer",
+            "title": "Parsed"
+          },
+          "unparsed": {
+            "type": "integer",
+            "title": "Unparsed"
+          },
+          "unparsedSamples": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unparsedsamples"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/Counts"
+          },
+          "firstT": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Firstt"
+          },
+          "lastT": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastt"
+          },
+          "hasDurations": {
+            "type": "boolean",
+            "title": "Hasdurations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "format",
+          "lines",
+          "parsed",
+          "unparsed",
+          "unparsedSamples",
+          "counts",
+          "firstT",
+          "lastT",
+          "hasDurations"
+        ],
+        "title": "FileSummary"
+      },
+      "Files": {
+        "properties": {
+          "folder": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Folder"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/LoadedFile"
+            },
+            "type": "array",
+            "title": "Files"
+          },
+          "hasSample": {
+            "type": "boolean",
+            "title": "Hassample"
+          }
+        },
+        "type": "object",
+        "required": [
+          "folder",
+          "files",
+          "hasSample"
+        ],
+        "title": "Files"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "title": "Health"
+      },
+      "HeatCell": {
+        "properties": {
+          "t": {
+            "type": "integer",
+            "title": "T"
+          },
+          "bin": {
+            "type": "integer",
+            "title": "Bin"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "t",
+          "bin",
+          "count"
+        ],
+        "title": "HeatCell"
+      },
+      "Incident": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "start": {
+            "type": "integer",
+            "title": "Start"
+          },
+          "end": {
+            "type": "integer",
+            "title": "End"
+          },
+          "tone": {
+            "$ref": "#/components/schemas/Tone"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "summary": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Summary"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/IncidentEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "failedRequests": {
+            "type": "integer",
+            "title": "Failedrequests"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "start",
+          "end",
+          "tone",
+          "title",
+          "summary",
+          "events",
+          "sources",
+          "failedRequests"
+        ],
+        "title": "Incident"
+      },
+      "IncidentEvent": {
+        "properties": {
+          "t": {
+            "type": "integer",
+            "title": "T"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "tone": {
+            "$ref": "#/components/schemas/Tone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "t",
+          "source",
+          "text",
+          "tone"
+        ],
+        "title": "IncidentEvent"
+      },
+      "JobOut": {
+        "properties": {
+          "t": {
+            "type": "integer",
+            "title": "T"
+          },
+          "level": {
+            "$ref": "#/components/schemas/Level"
+          },
+          "jobId": {
+            "type": "string",
+            "title": "Jobid"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "succeeded",
+              "failed"
+            ],
+            "title": "Outcome"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "outcomeText": {
+            "type": "string",
+            "title": "Outcometext"
+          },
+          "waitedS": {
+            "type": "number",
+            "title": "Waiteds"
+          },
+          "ranS": {
+            "type": "number",
+            "title": "Rans"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "t",
+          "level",
+          "jobId",
+          "service",
+          "summary",
+          "outcome",
+          "status",
+          "outcomeText",
+          "waitedS",
+          "ranS",
+          "detail"
+        ],
+        "title": "JobOut"
+      },
+      "JobServiceRow": {
+        "properties": {
+          "service": {
+            "type": "string",
+            "title": "Service"
+          },
+          "jobs": {
+            "type": "integer",
+            "title": "Jobs"
+          },
+          "succeeded": {
+            "type": "integer",
+            "title": "Succeeded"
+          },
+          "inputErrors": {
+            "type": "integer",
+            "title": "Inputerrors"
+          },
+          "serverErrors": {
+            "type": "integer",
+            "title": "Servererrors"
+          },
+          "ranP50": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ranp50"
+          },
+          "ranP95": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ranp95"
+          },
+          "ranMax": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ranmax"
+          },
+          "waitedP95": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Waitedp95"
+          }
+        },
+        "type": "object",
+        "required": [
+          "service",
+          "jobs",
+          "succeeded",
+          "inputErrors",
+          "serverErrors",
+          "ranP50",
+          "ranP95",
+          "ranMax",
+          "waitedP95"
+        ],
+        "title": "JobServiceRow"
+      },
+      "JobStory": {
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "title": "Jobid"
+          },
+          "job": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StoryItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "clients": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Clients"
+          }
+        },
+        "type": "object",
+        "required": [
+          "jobId",
+          "job",
+          "items",
+          "clients"
+        ],
+        "title": "JobStory"
+      },
+      "Jobs": {
+        "properties": {
+          "hasData": {
+            "type": "boolean",
+            "title": "Hasdata"
+          },
+          "window": {
+            "$ref": "#/components/schemas/WindowKey"
+          },
+          "range": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Range"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/JobOut"
+            },
+            "type": "array",
+            "title": "Jobs"
+          },
+          "services": {
+            "items": {
+              "$ref": "#/components/schemas/JobServiceRow"
+            },
+            "type": "array",
+            "title": "Services"
+          },
+          "markers": {
+            "items": {
+              "$ref": "#/components/schemas/Marker"
+            },
+            "type": "array",
+            "title": "Markers"
+          },
+          "incidents": {
+            "items": {
+              "$ref": "#/components/schemas/Incident"
+            },
+            "type": "array",
+            "title": "Incidents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hasData",
+          "window",
+          "range",
+          "jobs",
+          "services",
+          "markers",
+          "incidents"
+        ],
+        "title": "Jobs"
+      },
+      "Kpis": {
+        "properties": {
+          "requests": {
+            "type": "integer",
+            "title": "Requests"
+          },
+          "serverErrorPct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Servererrorpct"
+          },
+          "clientErrorPct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clienterrorpct"
+          },
+          "p95Ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95Ms"
+          },
+          "jobs": {
+            "type": "integer",
+            "title": "Jobs"
+          },
+          "failedJobs": {
+            "type": "integer",
+            "title": "Failedjobs"
+          },
+          "containerEvents": {
+            "type": "integer",
+            "title": "Containerevents"
+          },
+          "memPeakPct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mempeakpct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "requests",
+          "serverErrorPct",
+          "clientErrorPct",
+          "p95Ms",
+          "jobs",
+          "failedJobs",
+          "containerEvents",
+          "memPeakPct"
+        ],
+        "title": "Kpis"
+      },
+      "LatencyBin": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "loMs": {
+            "type": "number",
+            "title": "Loms"
+          },
+          "hiMs": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hims"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "loMs",
+          "hiMs"
+        ],
+        "title": "LatencyBin"
+      },
+      "LatencyHeatmap": {
+        "properties": {
+          "bins": {
+            "items": {
+              "$ref": "#/components/schemas/LatencyBin"
+            },
+            "type": "array",
+            "title": "Bins"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/HeatCell"
+            },
+            "type": "array",
+            "title": "Cells"
+          },
+          "maxCount": {
+            "type": "integer",
+            "title": "Maxcount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bins",
+          "cells",
+          "maxCount"
+        ],
+        "title": "LatencyHeatmap"
+      },
+      "Level": {
+        "type": "string",
+        "enum": [
+          "DEBUG",
+          "INFO",
+          "WARNING",
+          "ERROR",
+          "CRITICAL"
+        ]
+      },
+      "Line": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "t": {
+            "type": "integer",
+            "title": "T"
+          },
+          "level": {
+            "$ref": "#/components/schemas/Level"
+          },
+          "source": {
+            "$ref": "#/components/schemas/LogSource"
+          },
+          "logger": {
+            "type": "string",
+            "title": "Logger"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "t",
+          "level",
+          "source",
+          "logger",
+          "message",
+          "detail"
+        ],
+        "title": "Line"
+      },
+      "LoadedFile": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "bytes": {
+            "type": "integer",
+            "title": "Bytes"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/FileOrigin"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FileSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "path",
+          "bytes",
+          "origin",
+          "status",
+          "error",
+          "summary"
+        ],
+        "title": "LoadedFile"
+      },
+      "LogSource": {
+        "type": "string",
+        "enum": [
+          "api",
+          "nginx"
+        ]
+      },
+      "Logs": {
+        "properties": {
+          "hasData": {
+            "type": "boolean",
+            "title": "Hasdata"
+          },
+          "range": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Range"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "pages": {
+            "type": "integer",
+            "title": "Pages"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/Line"
+            },
+            "type": "array",
+            "title": "Lines"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hasData",
+          "range",
+          "total",
+          "page",
+          "pages",
+          "lines"
+        ],
+        "title": "Logs"
+      },
+      "Marker": {
+        "properties": {
+          "t": {
+            "type": "integer",
+            "title": "T"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "container",
+              "api_start"
+            ],
+            "title": "Kind"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "tone": {
+            "$ref": "#/components/schemas/Tone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "t",
+          "kind",
+          "label",
+          "tone"
+        ],
+        "title": "Marker"
+      },
+      "OriginRow": {
+        "properties": {
+          "origin": {
+            "$ref": "#/components/schemas/ErrorOrigin"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "tone": {
+            "$ref": "#/components/schemas/Tone"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "example": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Example"
+          }
+        },
+        "type": "object",
+        "required": [
+          "origin",
+          "label",
+          "description",
+          "tone",
+          "count",
+          "example"
+        ],
+        "title": "OriginRow"
+      },
+      "Overview": {
+        "properties": {
+          "hasData": {
+            "type": "boolean",
+            "title": "Hasdata"
+          },
+          "window": {
+            "$ref": "#/components/schemas/WindowKey"
+          },
+          "range": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Range"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bucketMs": {
+            "type": "integer",
+            "title": "Bucketms"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LogSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/LogSource"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "hasDurations": {
+            "type": "boolean",
+            "title": "Hasdurations"
+          },
+          "kpis": {
+            "$ref": "#/components/schemas/Kpis"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/TrafficPoint"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "latencyHeatmap": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LatencyHeatmap"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "endpoints": {
+            "items": {
+              "$ref": "#/components/schemas/EndpointRow"
+            },
+            "type": "array",
+            "title": "Endpoints"
+          },
+          "origins": {
+            "items": {
+              "$ref": "#/components/schemas/OriginRow"
+            },
+            "type": "array",
+            "title": "Origins"
+          },
+          "incidents": {
+            "items": {
+              "$ref": "#/components/schemas/Incident"
+            },
+            "type": "array",
+            "title": "Incidents"
+          },
+          "markers": {
+            "items": {
+              "$ref": "#/components/schemas/Marker"
+            },
+            "type": "array",
+            "title": "Markers"
+          },
+          "problems": {
+            "items": {
+              "$ref": "#/components/schemas/Line"
+            },
+            "type": "array",
+            "title": "Problems"
+          },
+          "problemCount": {
+            "type": "integer",
+            "title": "Problemcount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hasData",
+          "window",
+          "range",
+          "bucketMs",
+          "source",
+          "sources",
+          "hasDurations",
+          "kpis",
+          "points",
+          "latencyHeatmap",
+          "endpoints",
+          "origins",
+          "incidents",
+          "markers",
+          "problems",
+          "problemCount"
+        ],
+        "title": "Overview"
+      },
+      "Range": {
+        "properties": {
+          "start": {
+            "type": "integer",
+            "title": "Start"
+          },
+          "end": {
+            "type": "integer",
+            "title": "End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "Range"
+      },
+      "ResourceContainer": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "service": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service"
+          },
+          "memLimitBytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memlimitbytes"
+          },
+          "cpuPeakPct": {
+            "type": "number",
+            "title": "Cpupeakpct"
+          },
+          "cpuPeakT": {
+            "type": "integer",
+            "title": "Cpupeakt"
+          },
+          "memPeakBytes": {
+            "type": "integer",
+            "title": "Mempeakbytes"
+          },
+          "memPeakT": {
+            "type": "integer",
+            "title": "Mempeakt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "service",
+          "memLimitBytes",
+          "cpuPeakPct",
+          "cpuPeakT",
+          "memPeakBytes",
+          "memPeakT"
+        ],
+        "title": "ResourceContainer"
+      },
+      "ResourceNote": {
+        "properties": {
+          "t": {
+            "type": "integer",
+            "title": "T"
+          },
+          "tone": {
+            "$ref": "#/components/schemas/Tone"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "t",
+          "tone",
+          "text"
+        ],
+        "title": "ResourceNote"
+      },
+      "ResourcePoint": {
+        "properties": {
+          "t": {
+            "type": "integer",
+            "title": "T"
+          },
+          "container": {
+            "type": "string",
+            "title": "Container"
+          },
+          "cpuPct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cpupct"
+          },
+          "memBytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Membytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "t",
+          "container",
+          "cpuPct",
+          "memBytes"
+        ],
+        "title": "ResourcePoint"
+      },
+      "Resources": {
+        "properties": {
+          "hasData": {
+            "type": "boolean",
+            "title": "Hasdata"
+          },
+          "hasStats": {
+            "type": "boolean",
+            "title": "Hasstats"
+          },
+          "window": {
+            "$ref": "#/components/schemas/WindowKey"
+          },
+          "range": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Range"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bucketMs": {
+            "type": "integer",
+            "title": "Bucketms"
+          },
+          "containers": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceContainer"
+            },
+            "type": "array",
+            "title": "Containers"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/ResourcePoint"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "concurrency": {
+            "items": {
+              "$ref": "#/components/schemas/ConcurrencyPoint"
+            },
+            "type": "array",
+            "title": "Concurrency"
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceNote"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "markers": {
+            "items": {
+              "$ref": "#/components/schemas/Marker"
+            },
+            "type": "array",
+            "title": "Markers"
+          },
+          "incidents": {
+            "items": {
+              "$ref": "#/components/schemas/Incident"
+            },
+            "type": "array",
+            "title": "Incidents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hasData",
+          "hasStats",
+          "window",
+          "range",
+          "bucketMs",
+          "containers",
+          "points",
+          "concurrency",
+          "notes",
+          "markers",
+          "incidents"
+        ],
+        "title": "Resources"
+      },
+      "Source": {
+        "type": "string",
+        "enum": [
+          "api",
+          "nginx",
+          "docker"
+        ]
+      },
+      "Span": {
+        "properties": {
+          "range": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Range"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "range"
+        ],
+        "title": "Span",
+        "description": "The time the loaded data covers, for a link that needs a default window."
+      },
+      "StoryItem": {
+        "properties": {
+          "t": {
+            "type": "integer",
+            "title": "T"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "tone": {
+            "$ref": "#/components/schemas/Tone"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "t",
+          "source",
+          "text",
+          "tone",
+          "detail"
+        ],
+        "title": "StoryItem"
+      },
+      "Timeline": {
+        "properties": {
+          "start": {
+            "type": "integer",
+            "title": "Start"
+          },
+          "end": {
+            "type": "integer",
+            "title": "End"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "shown": {
+            "type": "integer",
+            "title": "Shown"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "total",
+          "shown",
+          "items"
+        ],
+        "title": "Timeline"
+      },
+      "TimelineItem": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "t": {
+            "type": "integer",
+            "title": "T"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "request",
+              "job",
+              "log",
+              "event"
+            ],
+            "title": "Kind"
+          },
+          "tone": {
+            "$ref": "#/components/schemas/Tone"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "t",
+          "source",
+          "kind",
+          "tone",
+          "text",
+          "detail"
+        ],
+        "title": "TimelineItem"
+      },
+      "Tone": {
+        "type": "string",
+        "enum": [
+          "pass",
+          "warn",
+          "fail",
+          "active",
+          "neutral"
+        ]
+      },
+      "TrafficPoint": {
+        "properties": {
+          "t": {
+            "type": "integer",
+            "title": "T"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "clientErrors": {
+            "type": "integer",
+            "title": "Clienterrors"
+          },
+          "serverErrors": {
+            "type": "integer",
+            "title": "Servererrors"
+          },
+          "clientErrorPct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clienterrorpct"
+          },
+          "serverErrorPct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Servererrorpct"
+          },
+          "p50": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P50"
+          },
+          "p95": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95"
+          },
+          "p99": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P99"
+          },
+          "jobs": {
+            "type": "integer",
+            "title": "Jobs"
+          },
+          "failedJobs": {
+            "type": "integer",
+            "title": "Failedjobs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "t",
+          "total",
+          "clientErrors",
+          "serverErrors",
+          "clientErrorPct",
+          "serverErrorPct",
+          "p50",
+          "p95",
+          "p99",
+          "jobs",
+          "failedJobs"
+        ],
+        "title": "TrafficPoint"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WindowKey": {
+        "type": "string",
+        "enum": [
+          "15m",
+          "1h",
+          "6h",
+          "24h",
+          "7d",
+          "all"
+        ]
+      }
+    }
+  }
+}

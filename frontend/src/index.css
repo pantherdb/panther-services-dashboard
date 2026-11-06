@@ -1,0 +1,648 @@
+@import 'tailwindcss';
+
+/* ===========================================================================
+   Tailwind entry and the design tokens.
+
+   THIS IS THE ONLY FILE IN src/ ALLOWED TO CONTAIN A COLOUR LITERAL. Component
+   code names a job (bg-surface-1, text-ink-muted, fill-series-3), never a
+   colour, and TypeScript reaches these values only through
+   `@panther.core/theme/tokens.ts`, which returns var() references. That's what
+   lets ECharts, SVG and Tailwind follow one colour-scheme switch.
+
+   The look: cool neutral surfaces, soft rounded cards on a slightly darker
+   plane, one violet accent for interaction, Inter for text and JetBrains Mono
+   for identifiers and log text. Dark is the default; light is equally kept up.
+
+   Top to bottom:
+     1. the `dark:` variant bridge (load-bearing)
+     2. raw values per scheme (--sd-l-* light, --sd-d-* dark)
+     3. active aliases (--sd-*), switched by the colour-scheme attribute
+     4. Tailwind theme: colours by role, type scale, radii
+     5. semantic utilities
+     6. Mantine bridge
+     7. base element styles
+   =========================================================================== */
+
+@custom-variant dark (&:where([data-mantine-color-scheme='dark'], [data-mantine-color-scheme='dark'] *));
+
+/* ---------------------------------------------------------------------------
+   COLOUR-VISION VALIDATION (the dataviz validator, run, not eyeballed)
+
+   Categorical slots, in this order (blue, aqua, orange, violet, yellow,
+   magenta), against the chart surfaces #ffffff light and #10131a dark:
+
+     light  adjacent worst CVD  9.7 (orange/aqua, protan); normal 17.7;
+            all 6 >= 3:1 contrast; L band and chroma pass
+     dark   adjacent worst CVD  9.4 (orange/aqua, deutan); normal 19.3;
+            all 6 >= 3:1 contrast; L band and chroma pass
+
+   All-pairs separation holds for the first three slots only, so a scatter
+   caps at three categorical colours and folds the rest into series-other.
+   Lines and bars use the adjacent gate and are safe to slot 6.
+
+   Sequential (violet, one hue): monotone, adjacent dL >= 0.06, low end 2.31:1
+   light / 2.26:1 dark against the surface, so one request still shows.
+
+   Text on the card surface: ink 18.4 / 15.3, muted 8.1 / 7.9, faint 5.2 / 5.2,
+   accent 6.3 / 7.1 (light / dark), every one >= 4.5:1.
+
+   Green and red are not categorical: they mean pass and fail. A status colour
+   never appears without an icon and a word.
+   --------------------------------------------------------------------------- */
+:root {
+  /* -- light ------------------------------------------------------------- */
+  --sd-l-plane: #f4f5f8;
+  --sd-l-sidebar: #fbfbfd;
+  --sd-l-surface-raised: #ffffff;
+  --sd-l-surface-1: #ffffff;
+  --sd-l-surface-2: #f8f9fb;
+  --sd-l-surface-3: #eef0f5;
+  --sd-l-shadow-raised: 0 4px 6px -2px rgb(16 24 40 / 0.05), 0 12px 24px -4px rgb(16 24 40 / 0.1);
+  --sd-l-shadow-panel: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.05);
+
+  --sd-l-ink: #0f1420;
+  --sd-l-ink-muted: #465066;
+  --sd-l-ink-faint: #646d82;
+  --sd-l-ink-inverse: #ffffff;
+
+  --sd-l-hairline: rgb(15 20 32 / 0.08);
+  --sd-l-hairline-strong: rgb(15 20 32 / 0.15);
+  --sd-l-grid: #eef0f4;
+  --sd-l-axis: #d3d8e2;
+  --sd-l-hatch-ink: rgb(15 20 32 / 0.2);
+
+  --sd-l-accent: #5848d8;
+  --sd-l-accent-hover: #4a3bc4;
+  --sd-l-accent-wash: rgb(88 72 216 / 0.09);
+  --sd-l-accent-ring: rgb(88 72 216 / 0.35);
+  --sd-l-on-accent: #ffffff;
+
+  --sd-l-status-pass: #008601;
+  --sd-l-status-warn: #986a00;
+  --sd-l-status-hole: #b9552b;
+  --sd-l-status-fail: #d03b3b;
+  --sd-l-status-active: #2a6fcb;
+  --sd-l-status-neutral: #646d82;
+  --sd-l-status-pass-wash: rgb(0 134 1 / 0.09);
+  --sd-l-status-warn-wash: rgb(152 106 0 / 0.1);
+  --sd-l-status-hole-wash: rgb(185 85 43 / 0.1);
+  --sd-l-status-fail-wash: rgb(208 59 59 / 0.09);
+  --sd-l-status-active-wash: rgb(42 111 203 / 0.09);
+  --sd-l-status-neutral-wash: rgb(100 109 130 / 0.1);
+  --sd-l-on-status: #ffffff;
+
+  --sd-l-series-1: #2a78d6;
+  --sd-l-series-2: #00a571;
+  --sd-l-series-3: #eb6834;
+  --sd-l-series-4: #4a3aa7;
+  --sd-l-series-5: #c38400;
+  --sd-l-series-6: #d96e97;
+  --sd-l-series-other: #767a80;
+  --sd-l-on-series-1: #ffffff;
+  --sd-l-on-series-2: #101215;
+  --sd-l-on-series-3: #101215;
+  --sd-l-on-series-4: #ffffff;
+  --sd-l-on-series-5: #101215;
+  --sd-l-on-series-6: #101215;
+  --sd-l-on-series-other: #ffffff;
+
+  /* one hue, low -> high magnitude */
+  --sd-l-seq-1: #aaa1f3;
+  --sd-l-seq-2: #8a7deb;
+  --sd-l-seq-3: #6a5ae0;
+  --sd-l-seq-4: #4b3cc4;
+  --sd-l-seq-5: #2c2282;
+
+  --sd-l-ord-1: #86b6ef;
+  --sd-l-ord-2: #5598e7;
+  --sd-l-ord-3: #2a78d6;
+  --sd-l-ord-4: #1c5cab;
+  --sd-l-ord-5: #0d366b;
+
+  --sd-l-div-neg-3: #a8265f;
+  --sd-l-div-neg-2: #c56e8a;
+  --sd-l-div-neg-1: #dcacb7;
+  --sd-l-div-mid: #ecebe7;
+  --sd-l-div-pos-1: #a7bbd6;
+  --sd-l-div-pos-2: #648cc2;
+  --sd-l-div-pos-3: #1c5cab;
+
+  --sd-l-wash-hover: rgb(15 20 32 / 0.035);
+  --sd-l-wash-selected: rgb(88 72 216 / 0.08);
+
+  /* -- dark -------------------------------------------------------------- */
+  --sd-d-plane: #0a0c11;
+  --sd-d-sidebar: #0c0f15;
+  --sd-d-surface-raised: #1a1e28;
+  --sd-d-surface-1: #10131a;
+  --sd-d-surface-2: #161a23;
+  --sd-d-surface-3: #1e2330;
+  --sd-d-shadow-raised: 0 8px 24px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.4);
+  --sd-d-shadow-panel: 0 1px 2px rgb(0 0 0 / 0.35);
+
+  --sd-d-ink: #e6e9f0;
+  --sd-d-ink-muted: #a1a9ba;
+  --sd-d-ink-faint: #7f889b;
+  --sd-d-ink-inverse: #0a0c11;
+
+  --sd-d-hairline: rgb(255 255 255 / 0.07);
+  --sd-d-hairline-strong: rgb(255 255 255 / 0.13);
+  --sd-d-grid: #1b202a;
+  --sd-d-axis: #2c3341;
+  --sd-d-hatch-ink: rgb(255 255 255 / 0.2);
+
+  --sd-d-accent: #9b94fb;
+  --sd-d-accent-hover: #b4aefc;
+  --sd-d-accent-wash: rgb(155 148 251 / 0.13);
+  --sd-d-accent-ring: rgb(155 148 251 / 0.4);
+  --sd-d-on-accent: #0a0c11;
+
+  --sd-d-status-pass: #3fae5a;
+  --sd-d-status-warn: #e0a92a;
+  --sd-d-status-hole: #ec835a;
+  --sd-d-status-fail: #f0736f;
+  --sd-d-status-active: #58a0f0;
+  --sd-d-status-neutral: #7f889b;
+  --sd-d-status-pass-wash: rgb(63 174 90 / 0.14);
+  --sd-d-status-warn-wash: rgb(224 169 42 / 0.14);
+  --sd-d-status-hole-wash: rgb(236 131 90 / 0.14);
+  --sd-d-status-fail-wash: rgb(240 115 111 / 0.14);
+  --sd-d-status-active-wash: rgb(88 160 240 / 0.14);
+  --sd-d-status-neutral-wash: rgb(127 136 155 / 0.14);
+  --sd-d-on-status: #0a0c11;
+
+  --sd-d-series-1: #3987e5;
+  --sd-d-series-2: #199e70;
+  --sd-d-series-3: #d95926;
+  --sd-d-series-4: #9085e9;
+  --sd-d-series-5: #c98500;
+  --sd-d-series-6: #d55181;
+  --sd-d-series-other: #7c828b;
+  --sd-d-on-series-1: #0a0c11;
+  --sd-d-on-series-2: #0a0c11;
+  --sd-d-on-series-3: #0a0c11;
+  --sd-d-on-series-4: #0a0c11;
+  --sd-d-on-series-5: #0a0c11;
+  --sd-d-on-series-6: #0a0c11;
+  --sd-d-on-series-other: #0a0c11;
+
+  /* on a dark surface magnitude runs dark -> light; seq-1 is still the low end */
+  --sd-d-seq-1: #4a40a3;
+  --sd-d-seq-2: #5f53c4;
+  --sd-d-seq-3: #7d72e6;
+  --sd-d-seq-4: #a49cf7;
+  --sd-d-seq-5: #d4cfff;
+
+  --sd-d-ord-1: #184f95;
+  --sd-d-ord-2: #256abf;
+  --sd-d-ord-3: #3987e5;
+  --sd-d-ord-4: #6da7ec;
+  --sd-d-ord-5: #9ec5f4;
+
+  --sd-d-div-neg-3: #eb95b8;
+  --sd-d-div-neg-2: #aa748b;
+  --sd-d-div-neg-1: #6c5461;
+  --sd-d-div-mid: #2c313c;
+  --sd-d-div-pos-1: #556173;
+  --sd-d-div-pos-2: #7892b1;
+  --sd-d-div-pos-3: #9ec5f4;
+
+  --sd-d-wash-hover: rgb(255 255 255 / 0.035);
+  --sd-d-wash-selected: rgb(155 148 251 / 0.12);
+
+  /* -- active aliases: light unless the root says dark ------------------- */
+  --sd-plane: var(--sd-l-plane);
+  --sd-sidebar: var(--sd-l-sidebar);
+  --sd-surface-raised: var(--sd-l-surface-raised);
+  --sd-surface-1: var(--sd-l-surface-1);
+  --sd-surface-2: var(--sd-l-surface-2);
+  --sd-surface-3: var(--sd-l-surface-3);
+  --sd-shadow-raised: var(--sd-l-shadow-raised);
+  --sd-shadow-panel: var(--sd-l-shadow-panel);
+  --sd-ink: var(--sd-l-ink);
+  --sd-ink-muted: var(--sd-l-ink-muted);
+  --sd-ink-faint: var(--sd-l-ink-faint);
+  --sd-ink-inverse: var(--sd-l-ink-inverse);
+  --sd-hairline: var(--sd-l-hairline);
+  --sd-hairline-strong: var(--sd-l-hairline-strong);
+  --sd-grid: var(--sd-l-grid);
+  --sd-axis: var(--sd-l-axis);
+  --sd-hatch-ink: var(--sd-l-hatch-ink);
+  --sd-accent: var(--sd-l-accent);
+  --sd-accent-hover: var(--sd-l-accent-hover);
+  --sd-accent-wash: var(--sd-l-accent-wash);
+  --sd-accent-ring: var(--sd-l-accent-ring);
+  --sd-on-accent: var(--sd-l-on-accent);
+  --sd-status-pass: var(--sd-l-status-pass);
+  --sd-status-warn: var(--sd-l-status-warn);
+  --sd-status-hole: var(--sd-l-status-hole);
+  --sd-status-fail: var(--sd-l-status-fail);
+  --sd-status-active: var(--sd-l-status-active);
+  --sd-status-neutral: var(--sd-l-status-neutral);
+  --sd-status-pass-wash: var(--sd-l-status-pass-wash);
+  --sd-status-warn-wash: var(--sd-l-status-warn-wash);
+  --sd-status-hole-wash: var(--sd-l-status-hole-wash);
+  --sd-status-fail-wash: var(--sd-l-status-fail-wash);
+  --sd-status-active-wash: var(--sd-l-status-active-wash);
+  --sd-status-neutral-wash: var(--sd-l-status-neutral-wash);
+  --sd-on-status: var(--sd-l-on-status);
+  --sd-series-1: var(--sd-l-series-1);
+  --sd-series-2: var(--sd-l-series-2);
+  --sd-series-3: var(--sd-l-series-3);
+  --sd-series-4: var(--sd-l-series-4);
+  --sd-series-5: var(--sd-l-series-5);
+  --sd-series-6: var(--sd-l-series-6);
+  --sd-series-other: var(--sd-l-series-other);
+  --sd-on-series-1: var(--sd-l-on-series-1);
+  --sd-on-series-2: var(--sd-l-on-series-2);
+  --sd-on-series-3: var(--sd-l-on-series-3);
+  --sd-on-series-4: var(--sd-l-on-series-4);
+  --sd-on-series-5: var(--sd-l-on-series-5);
+  --sd-on-series-6: var(--sd-l-on-series-6);
+  --sd-on-series-other: var(--sd-l-on-series-other);
+  --sd-seq-1: var(--sd-l-seq-1);
+  --sd-seq-2: var(--sd-l-seq-2);
+  --sd-seq-3: var(--sd-l-seq-3);
+  --sd-seq-4: var(--sd-l-seq-4);
+  --sd-seq-5: var(--sd-l-seq-5);
+  --sd-ord-1: var(--sd-l-ord-1);
+  --sd-ord-2: var(--sd-l-ord-2);
+  --sd-ord-3: var(--sd-l-ord-3);
+  --sd-ord-4: var(--sd-l-ord-4);
+  --sd-ord-5: var(--sd-l-ord-5);
+  --sd-div-neg-3: var(--sd-l-div-neg-3);
+  --sd-div-neg-2: var(--sd-l-div-neg-2);
+  --sd-div-neg-1: var(--sd-l-div-neg-1);
+  --sd-div-mid: var(--sd-l-div-mid);
+  --sd-div-pos-1: var(--sd-l-div-pos-1);
+  --sd-div-pos-2: var(--sd-l-div-pos-2);
+  --sd-div-pos-3: var(--sd-l-div-pos-3);
+  --sd-wash-hover: var(--sd-l-wash-hover);
+  --sd-wash-selected: var(--sd-l-wash-selected);
+}
+
+:root[data-mantine-color-scheme='dark'] {
+  --sd-plane: var(--sd-d-plane);
+  --sd-sidebar: var(--sd-d-sidebar);
+  --sd-surface-raised: var(--sd-d-surface-raised);
+  --sd-surface-1: var(--sd-d-surface-1);
+  --sd-surface-2: var(--sd-d-surface-2);
+  --sd-surface-3: var(--sd-d-surface-3);
+  --sd-shadow-raised: var(--sd-d-shadow-raised);
+  --sd-shadow-panel: var(--sd-d-shadow-panel);
+  --sd-ink: var(--sd-d-ink);
+  --sd-ink-muted: var(--sd-d-ink-muted);
+  --sd-ink-faint: var(--sd-d-ink-faint);
+  --sd-ink-inverse: var(--sd-d-ink-inverse);
+  --sd-hairline: var(--sd-d-hairline);
+  --sd-hairline-strong: var(--sd-d-hairline-strong);
+  --sd-grid: var(--sd-d-grid);
+  --sd-axis: var(--sd-d-axis);
+  --sd-hatch-ink: var(--sd-d-hatch-ink);
+  --sd-accent: var(--sd-d-accent);
+  --sd-accent-hover: var(--sd-d-accent-hover);
+  --sd-accent-wash: var(--sd-d-accent-wash);
+  --sd-accent-ring: var(--sd-d-accent-ring);
+  --sd-on-accent: var(--sd-d-on-accent);
+  --sd-status-pass: var(--sd-d-status-pass);
+  --sd-status-warn: var(--sd-d-status-warn);
+  --sd-status-hole: var(--sd-d-status-hole);
+  --sd-status-fail: var(--sd-d-status-fail);
+  --sd-status-active: var(--sd-d-status-active);
+  --sd-status-neutral: var(--sd-d-status-neutral);
+  --sd-status-pass-wash: var(--sd-d-status-pass-wash);
+  --sd-status-warn-wash: var(--sd-d-status-warn-wash);
+  --sd-status-hole-wash: var(--sd-d-status-hole-wash);
+  --sd-status-fail-wash: var(--sd-d-status-fail-wash);
+  --sd-status-active-wash: var(--sd-d-status-active-wash);
+  --sd-status-neutral-wash: var(--sd-d-status-neutral-wash);
+  --sd-on-status: var(--sd-d-on-status);
+  --sd-series-1: var(--sd-d-series-1);
+  --sd-series-2: var(--sd-d-series-2);
+  --sd-series-3: var(--sd-d-series-3);
+  --sd-series-4: var(--sd-d-series-4);
+  --sd-series-5: var(--sd-d-series-5);
+  --sd-series-6: var(--sd-d-series-6);
+  --sd-series-other: var(--sd-d-series-other);
+  --sd-on-series-1: var(--sd-d-on-series-1);
+  --sd-on-series-2: var(--sd-d-on-series-2);
+  --sd-on-series-3: var(--sd-d-on-series-3);
+  --sd-on-series-4: var(--sd-d-on-series-4);
+  --sd-on-series-5: var(--sd-d-on-series-5);
+  --sd-on-series-6: var(--sd-d-on-series-6);
+  --sd-on-series-other: var(--sd-d-on-series-other);
+  --sd-seq-1: var(--sd-d-seq-1);
+  --sd-seq-2: var(--sd-d-seq-2);
+  --sd-seq-3: var(--sd-d-seq-3);
+  --sd-seq-4: var(--sd-d-seq-4);
+  --sd-seq-5: var(--sd-d-seq-5);
+  --sd-ord-1: var(--sd-d-ord-1);
+  --sd-ord-2: var(--sd-d-ord-2);
+  --sd-ord-3: var(--sd-d-ord-3);
+  --sd-ord-4: var(--sd-d-ord-4);
+  --sd-ord-5: var(--sd-d-ord-5);
+  --sd-div-neg-3: var(--sd-d-div-neg-3);
+  --sd-div-neg-2: var(--sd-d-div-neg-2);
+  --sd-div-neg-1: var(--sd-d-div-neg-1);
+  --sd-div-mid: var(--sd-d-div-mid);
+  --sd-div-pos-1: var(--sd-d-div-pos-1);
+  --sd-div-pos-2: var(--sd-d-div-pos-2);
+  --sd-div-pos-3: var(--sd-d-div-pos-3);
+  --sd-wash-hover: var(--sd-d-wash-hover);
+  --sd-wash-selected: var(--sd-d-wash-selected);
+}
+
+/* ---------------------------------------------------------------------------
+   4. Tailwind theme. `inline` makes `bg-surface-1` emit `var(--sd-surface-1)`
+   itself, so the alias flip above applies wherever a utility is used.
+   --------------------------------------------------------------------------- */
+@theme inline {
+  --color-plane: var(--sd-plane);
+  --color-sidebar: var(--sd-sidebar);
+  --color-surface-raised: var(--sd-surface-raised);
+  --color-surface-1: var(--sd-surface-1);
+  --color-surface-2: var(--sd-surface-2);
+  --color-surface-3: var(--sd-surface-3);
+
+  --color-ink: var(--sd-ink);
+  --color-ink-muted: var(--sd-ink-muted);
+  --color-ink-faint: var(--sd-ink-faint);
+  --color-ink-inverse: var(--sd-ink-inverse);
+
+  --color-hairline: var(--sd-hairline);
+  --color-hairline-strong: var(--sd-hairline-strong);
+  --color-grid: var(--sd-grid);
+  --color-axis: var(--sd-axis);
+
+  --color-accent: var(--sd-accent);
+  --color-accent-hover: var(--sd-accent-hover);
+  --color-accent-wash: var(--sd-accent-wash);
+  --color-accent-ring: var(--sd-accent-ring);
+  --color-on-accent: var(--sd-on-accent);
+
+  --color-status-pass: var(--sd-status-pass);
+  --color-status-warn: var(--sd-status-warn);
+  --color-status-hole: var(--sd-status-hole);
+  --color-status-fail: var(--sd-status-fail);
+  --color-status-active: var(--sd-status-active);
+  --color-status-neutral: var(--sd-status-neutral);
+  --color-status-pass-wash: var(--sd-status-pass-wash);
+  --color-status-warn-wash: var(--sd-status-warn-wash);
+  --color-status-hole-wash: var(--sd-status-hole-wash);
+  --color-status-fail-wash: var(--sd-status-fail-wash);
+  --color-status-active-wash: var(--sd-status-active-wash);
+  --color-status-neutral-wash: var(--sd-status-neutral-wash);
+  --color-on-status: var(--sd-on-status);
+
+  --color-series-1: var(--sd-series-1);
+  --color-series-2: var(--sd-series-2);
+  --color-series-3: var(--sd-series-3);
+  --color-series-4: var(--sd-series-4);
+  --color-series-5: var(--sd-series-5);
+  --color-series-6: var(--sd-series-6);
+  --color-series-other: var(--sd-series-other);
+  --color-on-series-1: var(--sd-on-series-1);
+  --color-on-series-2: var(--sd-on-series-2);
+  --color-on-series-3: var(--sd-on-series-3);
+  --color-on-series-4: var(--sd-on-series-4);
+  --color-on-series-5: var(--sd-on-series-5);
+  --color-on-series-6: var(--sd-on-series-6);
+  --color-on-series-other: var(--sd-on-series-other);
+
+  --color-seq-1: var(--sd-seq-1);
+  --color-seq-2: var(--sd-seq-2);
+  --color-seq-3: var(--sd-seq-3);
+  --color-seq-4: var(--sd-seq-4);
+  --color-seq-5: var(--sd-seq-5);
+
+  --color-ord-1: var(--sd-ord-1);
+  --color-ord-2: var(--sd-ord-2);
+  --color-ord-3: var(--sd-ord-3);
+  --color-ord-4: var(--sd-ord-4);
+  --color-ord-5: var(--sd-ord-5);
+
+  --color-div-neg-3: var(--sd-div-neg-3);
+  --color-div-neg-2: var(--sd-div-neg-2);
+  --color-div-neg-1: var(--sd-div-neg-1);
+  --color-div-mid: var(--sd-div-mid);
+  --color-div-pos-1: var(--sd-div-pos-1);
+  --color-div-pos-2: var(--sd-div-pos-2);
+  --color-div-pos-3: var(--sd-div-pos-3);
+
+  --color-wash-hover: var(--sd-wash-hover);
+  --color-wash-selected: var(--sd-wash-selected);
+}
+
+/* Type: a scale with real steps, so a page has an entry point (the title, then
+   the headline numbers) and dense rows stay readable. */
+@theme {
+  --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:
+    'JetBrains Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, 'SF Mono', Menlo, monospace;
+
+  --text-3xs: 0.6875rem;
+  --text-3xs--line-height: 1rem;
+  --text-2xs: 0.75rem;
+  --text-2xs--line-height: 1.125rem;
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.375rem;
+  --text-lede: 1rem;
+  --text-lede--line-height: 1.5rem;
+  --text-title: 1.375rem;
+  --text-title--line-height: 1.875rem;
+  --text-display: 1.75rem;
+  --text-display--line-height: 2.125rem;
+
+  --radius-hair: 4px;
+  --radius-chip: 6px;
+  --radius-panel: 12px;
+}
+
+/* ---------------------------------------------------------------------------
+   5. Semantic utilities, prefixed `sd-` so none can collide with Tailwind's own
+   (`pb-*` would have been padding-bottom).
+   --------------------------------------------------------------------------- */
+
+/* Rings are inset box-shadows, not borders: they take no layout, so chrome can
+   change without moving content by a pixel. */
+@utility sd-hairline {
+  box-shadow: inset 0 0 0 1px var(--sd-hairline);
+}
+@utility sd-hairline-strong {
+  box-shadow: inset 0 0 0 1px var(--sd-hairline-strong);
+}
+@utility sd-hairline-t {
+  box-shadow: inset 0 1px 0 0 var(--sd-hairline);
+}
+@utility sd-hairline-b {
+  box-shadow: inset 0 -1px 0 0 var(--sd-hairline);
+}
+@utility sd-hairline-accent {
+  box-shadow: inset 0 0 0 1px var(--sd-accent);
+}
+
+/* A card: its ring and its shadow in one, since box-shadow doesn't stack across
+   two utilities. */
+@utility sd-card {
+  box-shadow:
+    inset 0 0 0 1px var(--sd-hairline),
+    var(--sd-shadow-panel);
+}
+@utility sd-raised {
+  box-shadow:
+    inset 0 0 0 1px var(--sd-hairline-strong),
+    var(--sd-shadow-raised);
+}
+
+/* Every column of figures, so digits line up. */
+@utility sd-figures {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Identifiers, paths, ids and log text. */
+@utility sd-ident {
+  font-family: var(--font-mono);
+  font-size: 0.94em;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+@utility sd-focus {
+  outline: 2px solid var(--sd-accent);
+  outline-offset: 2px;
+}
+
+/* The texture channel, for a state that must survive without hue. */
+@utility sd-hatch {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--sd-hatch-ink) 0 1px,
+    transparent 1px 5px
+  );
+}
+
+/* The brand mark's fill: the accent, lit from the top left. */
+@utility sd-brand {
+  background-image: linear-gradient(135deg, var(--sd-accent-hover), var(--sd-accent));
+  color: var(--sd-on-accent);
+}
+
+/* ---------------------------------------------------------------------------
+   6. Mantine bridge. Mantine owns controls; these tokens own colour. Its dark
+   scale is re-pointed at our surfaces so inputs, menus and segmented controls
+   sit on the same planes as everything else, without a colour prop anywhere.
+
+   `:root:root` on purpose: MantineProvider injects its own variables in a
+   <style> tag after this stylesheet, so equal specificity would lose. And
+   Mantine's `blue` is the primary colour, so it's re-pointed at the accent too:
+   a filled button reads `--mantine-color-blue-filled`, not the primary alias.
+   --------------------------------------------------------------------------- */
+:root:root,
+:root:root[data-mantine-color-scheme='light'],
+:root:root[data-mantine-color-scheme='dark'] {
+  --mantine-color-body: var(--sd-surface-1);
+  --mantine-color-text: var(--sd-ink);
+  --mantine-color-dimmed: var(--sd-ink-muted);
+  --mantine-color-default: var(--sd-surface-1);
+  --mantine-color-default-hover: var(--sd-surface-2);
+  --mantine-color-default-color: var(--sd-ink);
+  --mantine-color-default-border: var(--sd-hairline-strong);
+  --mantine-color-anchor: var(--sd-accent);
+  --mantine-color-placeholder: var(--sd-ink-faint);
+  --mantine-primary-color-filled: var(--sd-accent);
+  --mantine-primary-color-filled-hover: var(--sd-accent-hover);
+  --mantine-primary-color-light: var(--sd-accent-wash);
+  --mantine-primary-color-light-hover: var(--sd-accent-wash);
+  --mantine-primary-color-light-color: var(--sd-accent);
+  --mantine-primary-color-contrast: var(--sd-on-accent);
+  --mantine-color-blue-filled: var(--sd-accent);
+  --mantine-color-blue-filled-hover: var(--sd-accent-hover);
+  --mantine-color-blue-light: var(--sd-accent-wash);
+  --mantine-color-blue-light-hover: var(--sd-accent-wash);
+  --mantine-color-blue-light-color: var(--sd-accent);
+  --mantine-color-blue-outline: var(--sd-accent);
+  --mantine-color-blue-outline-hover: var(--sd-accent-wash);
+}
+
+:root:root[data-mantine-color-scheme='dark'] {
+  --mantine-color-dark-0: #e6e9f0;
+  --mantine-color-dark-1: #a1a9ba;
+  --mantine-color-dark-2: #7f889b;
+  --mantine-color-dark-3: #4b5365;
+  --mantine-color-dark-4: #2c3341;
+  --mantine-color-dark-5: #232937;
+  --mantine-color-dark-6: #161a23;
+  --mantine-color-dark-7: #10131a;
+  --mantine-color-dark-8: #0c0f15;
+  --mantine-color-dark-9: #0a0c11;
+}
+
+/* A segmented control reads as a set of tabs on a recessed track. */
+.sd-segmented {
+  background-color: var(--sd-surface-2);
+  box-shadow: inset 0 0 0 1px var(--sd-hairline);
+}
+.sd-segmented-indicator {
+  background-color: var(--sd-surface-raised);
+  box-shadow:
+    inset 0 0 0 1px var(--sd-hairline-strong),
+    0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+/* ---------------------------------------------------------------------------
+   7. Base element styles.
+   --------------------------------------------------------------------------- */
+html {
+  font-size: 16px;
+  color-scheme: light;
+}
+
+html[data-mantine-color-scheme='dark'] {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--sd-plane);
+  color: var(--sd-ink);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  code,
+  pre,
+  kbd,
+  samp {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  table {
+    font-variant-numeric: tabular-nums lining-nums;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--sd-accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--sd-wash-selected);
+  }
+}
