@@ -1,0 +1,11 @@
+# What the image's build never needs: installed packages, earlier builds and test output. The
+# image runs npm ci and npm run build itself.
+node_modules
+dist
+playwright-report
+test-results
+.env
+.env.*
+!.env.example
+Dockerfile
+.dockerignore

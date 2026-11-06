@@ -1,0 +1,32 @@
+# The dashboard in two containers, on any machine with Docker: the backend, reading a folder of
+# exported logs, and nginx, serving the UI and forwarding /api/ to it. From the repository root:
+#
+#   docker compose up --build                            # http://localhost:4340, reading ./exports
+#   PSD_LOAD_SAMPLE=true docker compose up --build       # with the made-up sample day as well
+#   PSD_LOGS=../some/exports docker compose up --build   # another folder of exported logs
+#   docker compose down                                  # stop it; uploads are kept in memory only
+#
+# Logs hold client addresses. The UI is published on 127.0.0.1 alone, and the backend not at all:
+# only the web container reaches it. Don't change either without deciding who may see the logs.
+
+name: panther-services-dashboard
+
+services:
+  api:
+    build:
+      context: ./backend
+    environment:
+      PSD_LOAD_SAMPLE: ${PSD_LOAD_SAMPLE:-false}
+    # Read-only: the dashboard reads logs, it never writes them. "Read the folder again" on the
+    # Files page picks up files added since, such as a stats recording.
+    volumes:
+      - ${PSD_LOGS:-./exports}:/logs:ro
+
+  web:
+    build:
+      context: ./frontend
+    ports:
+      - "127.0.0.1:${PSD_PORT:-4340}:8080"
+    depends_on:
+      api:
+        condition: service_healthy

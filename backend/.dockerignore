@@ -1,0 +1,7 @@
+# An allowlist: only what the image needs is sent to the build. Never tests, caches or .venv.
+*
+!pyproject.toml
+!uv.lock
+!.python-version
+!src/
+**/__pycache__
