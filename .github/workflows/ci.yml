@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.6"
+      - run: uv sync --locked
+      - run: uv run ruff format --check
+      - run: uv run ruff check
+      - run: uv run basedpyright
+      - run: uv run pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      # e2e starts the real backend.
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.6"
+      - run: npm ci
+      - run: npm run api:types:check
+      - run: npm run type-check
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+  # The images as compose runs them: both build, the backend comes up healthy with the sample, and
+  # nginx serves the UI and forwards /api/ to it.
+  docker:
+    runs-on: ubuntu-latest
+    env:
+      PSD_LOAD_SAMPLE: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose build
+      - run: docker compose up --detach --wait --wait-timeout 300
+      - run: curl --fail --silent --show-error http://127.0.0.1:4340/ | grep -q '<div id="root">'
+      - run: curl --fail --silent --show-error http://127.0.0.1:4340/api/v1/health
+      - run: >-
+          curl --fail --silent --show-error 'http://127.0.0.1:4340/api/v1/overview?window=all'
+          | grep -q '"hasData":true'
+      - if: always()
+        run: docker compose logs
+      - if: always()
+        run: docker compose down
